@@ -14,6 +14,9 @@
 
 # 🧰개발 환경
 
+* OS `Windows 10`
+* Development Tool `Eclipse`
+* FrameWork `Spring boot 2.6.12` `Mybatis`
 * `java 11` `Tomcat 9.0` `Oracle DB(11xe)`
 
 # ⚙️ERD 설계!
