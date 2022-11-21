@@ -18,7 +18,8 @@
 
 # ⚙️ERD 설계!
 
-[Untitled](https://user-images.githubusercontent.com/100340071/203090522-906a1614-b01f-4ad8-9fcb-e5c600179cf7.png)
+![Untitled](https://user-images.githubusercontent.com/100340071/203090702-3183e5bb-9f63-4fdb-aaf8-d0148a42527f.png)
+
 
 # SemiProject-한눈에쇼핑
 
