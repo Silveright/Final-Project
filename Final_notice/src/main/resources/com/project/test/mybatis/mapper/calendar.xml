@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?><!--  SQL 맵퍼 파일은 xml이기 때문에 제일 먼저 xml 선언이 옵니다. -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.test.mybatis.mapper.CalendarMapper">
+	<select id="getCalendarList" resultType="planner" parameterType="String">
+		select calendar_no as id, group_no, title, subject, content, to_char(startdate,'yyyy-mm-dd') as "start", location, xcoord,ycoord, calendar_no 
+		from group_schedule
+		where group_no = #{group_no}
+	</select>
+
+	<select id="getCalendarDetail" resultType="planner" parameterType="String">
+		select * 
+		from group_schedule  
+		where calendar_no = #{calendar_no}
+	</select>
+	
+	<insert id="CalendarAdd">
+		insert into group_schedule 
+		values(calendar_seq.nextval, #{group_no}, #{title}, #{subject}, #{content}, to_char(#{startdate},'yyyy-mm-dd'),#{location}, #{xcoord}, #{ycoord})
+	</insert>
+	
+	<update id="CalendarModify" parameterType="planner">
+		update group_schedule  set title=#{title},
+		subject=  #{subject}, 
+		content= #{content},
+		location= #{location}, 
+		startdate = #{startdate},
+		xcoord=#{xcoord},
+		ycoord=#{ycoord}
+		where calendar_no = #{calendar_no}
+	</update>
+	<update id="CalendarModifyDate" parameterType="map">
+		update group_schedule  set 
+		startdate = #{startdate}
+		where calendar_no = #{calendar_no}
+	</update>
+	<delete id="CalendarDelete" parameterType="int">
+		delete group_schedule 
+		where calendar_no = #{calendar_no}
+	</delete>
+</mapper>

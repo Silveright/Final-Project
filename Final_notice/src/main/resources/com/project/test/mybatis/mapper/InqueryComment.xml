@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?><!--  SQL 맵퍼 파일은 xml이기 때문에 제일 먼저 xml 선언이 옵니다. -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.test.mybatis.mapper.InqueryCommentMapper">
+
+	<select id="getListCount" resultType="int" parameterType="int">
+		select count(*)
+		from comm
+		where comment_inquery_num = #{comment_inquery_num}
+	</select>
+	
+	<select id="getCommentList" resultType="inquirycomment" parameterType="map">
+		select * from 
+		(select rownum rnum, num, id, content, reg_date, comment_re_lev, 
+				 comment_re_seq, 
+				comment_re_ref  
+				from
+		(select num, comm.id, content, reg_date, comment_re_lev, 
+				 comment_re_seq, 
+				comment_re_ref  
+				from   comm join user_info  
+				on 	 comm.id= user_info.userid 
+				where comment_inquery_num =  #{comment_inquery_num}
+				order by comment_re_ref 
+				<if test='state==1'>
+					asc
+				</if>
+				<if test='state==2'>
+					desc
+				</if>, 
+				comment_re_seq asc)
+			where rownum &lt;= #{end})
+			where rnum between #{start} and #{end}
+	</select>
+	
+	<insert id="commentsInsert">
+		<selectKey resultType="int" order="BEFORE"
+					keyProperty="num">
+			select nvl(max(num),0)+1 from comm
+		</selectKey>
+		insert into comm
+		values(#{num}, #{id}, #{content}, sysdate, #{comment_inquery_num}, #{comment_re_lev}, #{comment_re_seq},#{num})
+	</insert>
+	
+	<update id="commentsReplyUpdate">
+		update comm
+		set comment_re_seq =  comment_re_seq + 1
+		where  comment_re_ref = #{comment_re_ref}
+		and    comment_re_seq   <![CDATA[ > ]]>  #{comment_re_seq}
+	</update>
+	
+	<insert id="commentsReply">
+		<selectKey resultType="int" order="BEFORE"
+					keyProperty="num">
+			select nvl(max(num),0)+1 from comm
+		</selectKey>
+		insert into comm
+		values(#{num}, #{id}, #{content}, sysdate, #{comment_inquery_num},
+		 #{comment_re_lev}, #{comment_re_seq}, #{comment_re_ref})
+	</insert>
+	
+	
+	<update id="commentsUpdate">
+		update comm
+		set content=#{content}, REG_DATE=sysdate
+		where num = #{num}	
+	</update>
+	
+	<delete id="commentsDelete">
+		delete comm
+		where num = #{num}
+	</delete>
+</mapper>

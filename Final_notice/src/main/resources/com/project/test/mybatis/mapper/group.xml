@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?><!--  SQL 맵퍼 파일은 xml이기 때문에 제일 먼저 xml 선언이 옵니다. -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.test.mybatis.mapper.GroupMapper">
+	 
+	 <select id="getListCount" resultType="int">
+		select count(*) from group_info	
+	 </select>
+	 
+	 <select id="getGroupList" parameterType="java.util.Map" resultType="group">
+		select * from 
+         (select rownum rnum, j.*     
+         from (select * from group_info) j     
+         where rownum&lt;=#{end}
+         ) 
+      where rnum&gt;=#{start}  and rnum&lt;=#{end}
+	</select>
+	
+	<select id="getNewGroupList" parameterType="java.util.Map" resultType="group">
+		select * from 
+         (select rownum rnum, j.*     
+         from (select * from group_info) j     
+         where rownum&lt;=#{end}
+         ) 
+		where rnum&gt;=#{start} and rnum&lt;=#{end}
+		order by opendate desc
+	</select>
+	
+	<select id="getBestGroupList" parameterType="java.util.Map" resultType="group">
+		select * from
+         (select rownum rnum, j.*
+         from (select * from group_info
+				inner join (select count(userid), group_no 
+							from group_user_role
+							group by group_no
+            				order by count(userid) desc ) b
+				on group_info.group_no = b.group_no) j     
+         where rownum&lt;=#{end}
+         ) 
+		where rnum&gt;=#{start} and rnum&lt;=#{end}
+	</select>
+	 
+	 <!-- 모임 생성  -->
+    <insert id="insertGroup" parameterType="group">
+	 	<selectKey resultType="int" order="BEFORE"
+	 				keyProperty="group_no">
+	 		select nvl(max(group_no), 0) + 1 from group_info
+	 	</selectKey>
+	 	insert ALL into group_info
+	 	(group_no, 
+	 	group_name, group_content, group_img, 
+	 	group_original, area_name, catename, userid,
+	 	opendate)
+	 	values
+	 	(#{group_no},
+	 	 #{group_name}, #{group_content}, #{group_img, jdbcType=VARCHAR},
+	 	 #{group_original, jdbcType=VARCHAR}, #{area_name}, #{catename}, #{userid},
+	 	 sysdate)
+	 	 into group_user_role(group_role_no, userid, group_no, group_role)
+	 	 values(role_seq.nextval, #{userid}, #{group_no}, 0)
+	 	 select * from dual
+	 </insert>
+	 
+	 <select id="getDetail" parameterType="int" resultType="group">
+	 	select * 
+	 	from group_info
+	 	where group_no=#{grouo_no}
+	 </select>
+
+	 <select id="getMemberCount" parameterType="int" resultType="int">
+	 	select count(*)  
+	 	from group_user_role
+	 	where group_no=#{grouo_no}
+	 </select>
+	 
+	 <select id="getUserRole" resultType="GroupUser">
+	 	select * from group_user_role
+	 	where userid=#{userid} 
+	 	and group_no=#{group_no}
+	 </select>
+	 
+	 <insert id="insert">
+	 	insert into group_join_request
+	 	(group_join_no, userid, group_no)
+	 	values (JOIN_SEQ.nextval, #{userid}, #{group_no})
+	 </insert>
+	 
+	 <select id="getBoardListCount" resultType="int">
+		select count(*) from Group_Board
+		where group_no = #{group_no}
+	</select>
+	 
+	 <select id="getGroupBoardList" parameterType="java.util.Map" resultType="group_board">
+		select * from 
+		  ( select rownum rnum, b.*
+		    from 
+		         (select Group_Board.*, nvl(cnt,0) cnt
+                  from 
+                  Group_Board   left outer join (select board_num, count(*) cnt
+                                            from COMMENTS
+                                            group by board_num) c
+                  on Group_Board.board_num = c.board_num
+                  order by Group_Board.board_num desc) b
+             where rownum &lt;=  #{end} 
+             and group_no = #{group_no}    
+		   ) 
+	     where rnum &gt;= #{start} and rnum  &lt;=  #{end}
+	</select>
+	
+	<!-- 모임 게시판 검색 -->
+	<select id="getSearchList" parameterType="map" resultType="Group_Board">
+	  select * 
+	  from ( select rownum rnum, b.*
+	          from  (select * 
+	                 from Group_Board                
+	                  left outer join (select board_num, count(*) cnt
+                                            from COMMENTS
+                                            group by board_num) c
+                  on Group_Board.board_num = c.board_num
+                  <include refid="search_"/>
+                  order by Group_Board.board_num desc) b 
+	           where rownum &lt;=  #{end}    
+	        ) 
+	  where rnum &gt;= #{start} and rnum  &lt;=  #{end} 
+	</select>
+	
+	<select id="getSearchListCount" resultType="int" parameterType="map">
+		select count(*) 
+		from Group_Board
+		
+		<include refid ="search_"/>
+	</select>
+	
+	<sql id="search_">
+		 <if test="search_field!=null">
+		 where
+	      <choose>
+	           <when test='search_field=="0"'>BOARD_SUBJECT</when>
+	           <when test='search_field=="1"'>BOARD_NAME</when>
+	       </choose>	  
+	       like #{search_word}
+	  </if>
+	</sql>
+	
+	<!--  
+		 1. jdbcType=VARCHAR : 첨부 파일을 추가하지 않은 경우 에러 처리해 줍니다.
+		 					   해당 필드가 null인 경우 jdbcType=VARCHAR로 처리하면 null로 설정됩니다.
+		 
+		 2. 1) insert 전에(order="BEFORE")
+		 		조회(select nvl(max(BOARD_NUM), 0) + 1 from board) 합니다.	
+		 	
+		 	2) 조회환 값을 keyProperty="BOARD_NUM"에서 설정한대로
+		 		"BOARD_NUM" 프로퍼티에 저장합니다.
+		 		public void setBOARD_NUM(int bOARD_NUM))
+		 	
+		 	3) insert문의 #{BOARD_NUM}는 지금 구한 값을 BoardBean에서 가져옵니다.
+		 		(public String getBOARD_NUM() {return BOARD_NUM;}) 						   
+	 -->
+	 <insert id="insertBoard">
+	 	<selectKey resultType="int" order="BEFORE"
+	 				keyProperty="BOARD_NUM">
+	 		select nvl(max(BOARD_NUM), 0) + 1 from Group_Board
+	 	</selectKey>
+	 	insert into Group_Board
+	 	(BOARD_NUM, GROUP_NO,
+	 	BOARD_NAME, BOARD_PASS, BOARD_SUBJECT,
+	 	BOARD_CONTENT, BOARD_FILE, BOARD_ORIGINAL,
+	 	BOARD_READCOUNT,
+	 	BOARD_DATE)
+	 	values
+	 	(#{BOARD_NUM}, #{GROUP_NO},
+	 	 #{BOARD_NAME}, #{BOARD_PASS}, #{BOARD_SUBJECT},
+	 	 #{BOARD_CONTENT}, #{BOARD_FILE, jdbcType=VARCHAR},
+	 	 #{BOARD_ORIGINAL, jdbcType=VARCHAR},
+	 	 #{BOARD_READCOUNT},
+	 	 sysdate)
+	 </insert>
+	 
+	 <update id="setReadCountUpdate" parameterType="int">
+		update Group_Board
+		set BOARD_READCOUNT = BOARD_READCOUNT + 1
+		WHERE BOARD_NUM=#{board_num}
+	 </update>
+	 
+	 <select id="getBoardDetail" parameterType="int" resultType="Group_Board">
+	 	select * 
+	 	from Group_Board
+	 	where BOARD_NUM=#{board_num}
+	 </select>
+	 
+	 <!-- map은 java.util.Map의 별칭입니다. -->
+	<select id="isBoardWriter" parameterType="map" resultType="Group_Board">
+	    select * from Group_Board
+	    where    BOARD_NUM=#{num} 
+	    and      BOARD_PASS=#{pass}
+	</select>
+	
+	<update id="boardModify">
+	  update Group_Board
+	  set 
+		     BOARD_SUBJECT=#{BOARD_SUBJECT},
+		     BOARD_CONTENT=#{BOARD_CONTENT},
+		     BOARD_FILE=#{BOARD_FILE, jdbcType=VARCHAR}, 
+		     BOARD_ORIGINAL=#{BOARD_ORIGINAL, jdbcType=VARCHAR}
+	  where  BOARD_NUM=#{BOARD_NUM}
+	</update>
+	
+	<delete id="boardDelete">
+		
+		delete from Group_Board
+		where BOARD_NUM=#{BOARD_NUM}
+		
+	</delete>
+	
+	<select id="getDeleteFileList" resultType="String">
+		select BOARD_FILE from DELETE_FILE
+	</select>
+	
+	<delete id="deleteFileList" parameterType="String">
+		delete DELETE_FILE where BOARD_FILE=#{BOARD_FILE}
+	</delete>
+	
+	
+	 
+	 <select id="getUserGroup" resultType="UserGroup">
+	 	select group_no, GROUP_IMG, group_name, group_content, catename, group_user, group_role 
+		from group_info gi join (select group_no as user_groupno, userid as group_user, group_role
+							from group_user_role
+							)
+		on gi.group_no = user_groupno
+		and group_user=#{userid}
+	 </select>
+	 
+	 <select id="getUserJoin" resultType="GroupUser">
+	 	select group_no, userid from group_join_request
+	 	where userid=#{userid} and group_no=#{group_no}
+	 </select>
+
+	 <select id="getUserGroupCount" resultType="int">
+	 	select count(*) from group_user_role
+	 	where userid=#{userid}
+	 </select>
+	 
+
+	 <delete id="groupuserdelete">
+		delete from group_user_role
+		where userid=#{userid} and group_no=#{group_no}
+	</delete>
+
+	 <select id="isGroupWriter" parameterType="map" resultType="Group">
+	    select * from group_info
+	    where    group_no=#{group_no} 
+	</select>
+	
+	<update id="groupModify" parameterType="Group">
+	  update group_info
+	  set 
+		     group_name=#{group_name},
+		     group_content=#{group_content},
+		     group_original=#{group_original, jdbcType=VARCHAR},
+		     group_img=#{group_img, jdbcType=VARCHAR},
+		     area_name=#{area_name}, 
+		     catename=#{catename} 
+	  where  group_no=#{group_no}
+	</update>
+	
+	<delete id="groupDelete" parameterType="group">
+		delete from group_info
+		where group_no = #{group_no}
+	</delete>
+	 
+</mapper>

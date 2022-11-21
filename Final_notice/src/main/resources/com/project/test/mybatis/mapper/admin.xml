@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" ?><!--  SQL 맵퍼 파일은 xml이기 때문에 제일 먼저 xml 선언이 옵니다. -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.test.mybatis.mapper.AdminMapper">
+
+	<select id="getNoticeListCount" resultType="int">
+		select count(*) from notice
+		<include refid="notice"/>
+	</select>
+
+	<select id="getInqueryListCount" resultType="int">
+		select count(*) from inquery
+		<include refid="inquery"/>
+	</select>
+	<select id="getNoticeList" resultType="Notice">
+		select * from 
+			(select rownum rnum, j.*	  
+			from (select * from notice
+			<include refid="notice"/>
+			order by notice_no desc
+					) j  	
+			where rownum&lt;= #{end}
+			) 
+		where rnum&gt;= #{start}  and rnum &lt;= #{end}
+	</select>
+
+	<select id="getInqueryList" resultType="Inquery">
+		select * 
+	  from ( select rownum rnum, b.*
+	          from  (select * 
+	                 from inquery                
+	                  left outer join (select comment_inquery_num, count(*) cnt
+                                            from comm
+                                            group by comment_inquery_num) c
+                  on inquery.inquery_num = c.comment_inquery_num
+                  <include refid="inquery"/>
+                  order by 
+                  inquery_re_ref desc,
+                  inquery_re_seq asc) b 
+	           where rownum &lt;=  #{end}
+	        ) 
+	  where rnum &gt;= #{start} and rnum  &lt;=  #{end} 
+	</select>
+	
+	<insert id="insertNotice">
+		<selectKey resultType="int" order="BEFORE"
+					keyProperty="notice_no">
+			select nvl(max(notice_no),0)+1 from notice
+		</selectKey>
+		insert into notice
+			(notice_no, 
+			 subject, content, notice_file, notice_file_original,
+			 readcount, writedate)
+			 values
+			 (#{notice_no},
+			 #{subject},
+			 #{content}, 
+			 #{notice_file, jdbcType=VARCHAR},
+			 #{notice_file_original, jdbcType=VARCHAR},
+			 #{readcount},
+			 sysdate)
+	</insert>
+
+	<insert id="insertInquery">
+		<selectKey resultType="int" order="BEFORE"
+					keyProperty="inquery_num">
+			select nvl(max(inquery_num),0)+1 from inquery
+		</selectKey>
+		insert into inquery
+			(inquery_num, 
+			 inquery_name, inquery_pass, inquery_subject,
+			 inquery_content, inquery_file, inquery_original,
+			 inquery_re_ref,
+			 inquery_re_lev, inquery_re_seq, inquery_readcount,
+			 inquery_date, inquery_secret)
+			 values
+			 (#{inquery_num},
+			 #{inquery_name}, #{inquery_pass}, #{inquery_subject},
+			 #{inquery_content}, #{inquery_file, jdbcType=VARCHAR},
+			 #{inquery_original, jdbcType=VARCHAR},
+			 #{inquery_num},
+			 #{inquery_re_lev}, #{inquery_re_seq}, #{inquery_readcount},
+			 sysdate, #{inquery_secret})
+	</insert>
+	
+	<select id="getDetail" parameterType="int" resultType="Notice">
+		select * from notice
+		where notice_no = #{num}
+	</select>
+
+	<select id="getInquiryDetail" parameterType="int" resultType="Inquery">
+		select * 
+			  from  (select * 
+			                 from inquery                
+			                  left outer join (select comment_inquery_num, count(*) cnt
+		                                            from comm
+		                                            group by comment_inquery_num) c
+		                  on inquery.inquery_num = c.comment_inquery_num
+		                  order by inquery.inquery_num desc) b 
+			  where inquery_num = #{num}
+	</select>
+	
+	<update id="setReadCountUpdate" parameterType="int">
+		update notice set
+		readcount=readcount+1
+		where notice_no=#{num}
+	</update>
+
+	<update id="setInquiryReadCountUpdate" parameterType="int">
+		update inquery set
+		inquery_readcount=inquery_readcount+1
+		where inquery_num=#{num}
+	</update>
+	
+	<update id="noticeModify">
+		update notice set
+		subject = #{subject},
+		content = #{content},
+		NOTICE_FILE = #{notice_file, jdbcType=VARCHAR},
+		NOTICE_FILE_ORIGINAL = #{notice_file_original, jdbcType=VARCHAR}
+		where notice_no=#{notice_no}
+	</update>
+	
+	<delete id="noticeDelete">
+		delete from notice
+		where notice_no= #{num}
+	</delete>
+	
+	<update id="inqueryModify">
+		update inquery set
+		INQUERY_SUBJECT = #{inquery_subject},
+		INQUERY_CONTENT = #{inquery_content},
+		INQUERY_SECRET = #{inquery_secret},
+		INQUERY_FILE = #{inquery_file, jdbcType=VARCHAR},
+		INQUERY_ORIGINAL = #{inquery_original, jdbcType=VARCHAR}
+		where INQUERY_NUM =#{inquery_num}
+	</update>
+	
+	<select id="isBoardWriter" resultType="inquery">
+	    select * from inquery 
+	    where    inquery_num=#{inquery_num} 
+	    and      inquery_pass=#{inquery_pass}
+	</select>
+	
+	
+	<update id="inqueryReplyUpdate">
+		update inquery set
+		 inquery_re_seq = inquery_re_seq + 1  
+		 where  inquery_re_ref = #{inquery_re_ref}
+		 and    inquery_re_seq  <![CDATA[ > ]]>  #{inquery_re_seq}
+	</update>
+	
+	<insert id="inqueryReply">
+		<selectKey resultType="int" order="BEFORE"
+					keyProperty="inquery_num">
+			select nvl(max(inquery_num),0)+1 from inquery
+		</selectKey>
+		insert into inquery
+			(inquery_num, 
+			 inquery_name, inquery_pass, inquery_subject,
+			 inquery_content,
+			 inquery_re_ref,
+			 inquery_re_lev, inquery_re_seq, inquery_readcount,
+			 inquery_date, inquery_secret)
+			 values
+			 (#{inquery_num},
+			 #{inquery_name}, #{inquery_pass}, #{inquery_subject},
+			 #{inquery_content},
+			 #{inquery_re_ref},
+			 #{inquery_re_lev}, #{inquery_re_seq}, #{inquery_readcount},
+			 sysdate, #{inquery_secret})
+	</insert>
+	
+	
+	
+	<delete id="inqueryDelete" parameterType="inquery">
+		<![CDATA[ 
+			delete from inquery 
+			where inquery_re_ref = #{inquery_re_ref}
+			and inquery_re_lev >= #{inquery_re_lev}
+			and    inquery_re_seq >= #{inquery_re_seq}
+		and    inquery_re_seq <=(  nvl((SELECT min(inquery_re_seq)-1
+		 								 FROM   inquery
+			                             WHERE  inquery_re_ref=#{inquery_re_ref}
+			                             AND    inquery_re_lev=#{inquery_re_lev}
+		                          		 AND    inquery_re_seq>#{inquery_re_seq}) , 
+			                            (SELECT max(inquery_re_seq)
+			                             FROM   inquery
+						                 WHERE  inquery_re_ref=#{inquery_re_ref} ))
+						                 )
+		 ]]>
+	</delete>
+	
+	
+	<sql id="notice">
+		<if test='search_field !=null'>
+				where 
+				<choose>
+					<when test="search_field=='subject'">subject</when>
+					<when test="search_field=='content'">content</when>
+				</choose> 
+				like #{search_word}
+		</if> 
+	</sql>
+	
+	<sql id="inquery">
+		<if test='search_field !=null'>
+				where 
+				<choose>
+					<when test="search_field=='subject'">inquery_subject</when>
+					<when test="search_field=='content'">inquery_content</when>
+				</choose> 
+				like #{search_word}
+				and inquery_secret != 1
+		</if> 
+	</sql>
+	
+	<select id="getChartGender" resultType="AdminChartCategory">
+		<![CDATA[SELECT *
+		FROM
+	    (select count(*) "Male" from user_info
+	    where gender='남'
+	    ),
+	    (select count(*) "Female" from user_info
+	    where gender='여'
+	    )  ]]>
+	</select>
+	
+	<delete id="delete">
+		delete from user_info
+		where userid=#{userid}
+	</delete>
+	
+	<select id="getTotaluser" resultType="int">
+		select count(*)
+		from user_info
+	</select>
+	
+	<select id="getChartSchedule" resultType="planner">
+        select *
+        from group_schedule
+                 left join group_info gi on gi.group_no = group_schedule.group_no
+    </select>
+	
+	<select id="getTotalschedule" resultType="int">
+		select count(*)
+		from GROUP_SCHEDULE
+	</select>
+	
+	<select id="getBestgroup" resultType="String">
+		select f.group_name from (select rownum, j.* 
+		from (select group_no, group_name,  cnt 
+			  from group_info gi join 
+			  					(select group_no as user_groupno, count(*) cnt
+								 from group_user_role
+								 group by group_no
+								 order by cnt desc)
+		on gi.group_no = user_groupno) j) f
+		where rownum=1
+	</select>
+	
+	<select id="getTotalgroup" resultType="int">
+		select count(*)
+		from GROUP_INFO
+	</select>
+	
+	<select id="getChartareadate" resultType="AdminChartAreaDate">
+		select dt as "date", nvl(cnt,0) as cnt
+from (SELECT TO_CHAR(TO_DATE(SYSDATE-6,'YY/MM/DD') + LEVEL - 1, 'YY/MM/DD') AS dt
+      FROM dual 
+      CONNECT BY LEVEL &lt;= (TO_DATE(sysdate,'YY/MM/DD')         
+                          - TO_DATE(SYSDATE-6,'YY/MM/DD') + 1))  
+left outer join (select count(*) cnt, to_Char(joindate, 'yy/mm/dd') as dt1
+							from user_info 
+							WHERE joindate &gt;= to_Char(SYSDATE-7,'YY/MM/DD')
+							group by to_Char(joindate, 'yy/mm/dd'))
+on dt = dt1
+order by dt
+	</select>
+	<select id="getPieChart" resultType="AdminChartCategory">
+		select catename, sum(cnt) as users from (select group_no, group_name, catename,  cnt 
+	  from group_info gi join 
+	  					(select group_no as user_groupno, count(*) cnt
+						 from group_user_role
+						 group by group_no
+						 order by cnt desc)
+						 on gi.group_no = user_groupno)	group by catename	
+	</select>
+	<select id="getSearchListCount" resultType="int">
+		select count(*) from user_info
+		where userid != 'admin'
+		<if test='search_field !=null'>
+		and 
+		<choose>
+			<when test="search_field=='userid'">userid</when>
+			<when test="search_field=='area_name'">area_name</when>
+			<when test="search_field=='gender'">gender</when>
+		</choose>
+		like #{search_word}
+		</if>
+	</select>
+	<select id="getSearchList" resultType="AdminMember">
+		select *
+			from (select rownum rnum , b.*
+					from (select userid, gender, area_name, email,  to_char(joindate, 'yy-mm-dd') joindate 
+						  from user_info
+						  where userid != 'admin' 
+						  <include refid="search_"/>
+						  order by userid) b
+					where rownum &lt;= #{end}
+					)
+			where rnum &gt;= #{start} and rnum&lt;= #{end}
+	</select>
+	
+	<select id="getGroupSearchListCount" resultType="int">
+		select count(*) from (
+		 select ui.userid, gender, email, area_name,group_name,catename,cnt
+		from user_info ui
+		inner join (select group_no, group_name, userid,catename,  cnt 
+			  from group_info gi join 
+			  					(select group_no as user_groupno, count(*) cnt
+								 from group_user_role
+								 group by group_no
+								 order by cnt desc
+								 ,group_no asc)
+								 on gi.group_no = user_groupno) g
+		on ui.userid=g.userid
+		 ) 
+		 <if test='search_field !=null'>
+		where 
+		<choose>
+			<when test="search_field=='userid'">userid</when>
+			<when test="search_field=='catename'">catename</when>
+			<when test="search_field=='gender'">gender</when>
+		</choose>
+		like #{search_word}
+		</if>
+	</select>
+	
+	<select id="getGroupSearchList" resultType="AdminMember">
+		 select *
+			from (select rownum rnum, b.*
+					from ( select ui.userid, gender, email, area as area_name,group_name,catename,cnt
+		from user_info ui
+		inner join (select group_no, group_name, userid,catename,area_name as area,  cnt 
+			  from group_info gi join 
+			  					(select group_no as user_groupno, count(*) cnt
+								 from group_user_role
+								 group by group_no
+								 order by cnt desc
+								 ,group_no asc)
+								 on gi.group_no = user_groupno) g
+		on ui.userid=g.userid
+		 <if test='search_field !=null'>
+		where 
+		<choose>
+			<when test="search_field=='userid'">ui.userid</when>
+			<when test="search_field=='catename'">catename</when>
+			<when test="search_field=='gender'">gender</when>
+		</choose>
+		like #{search_word}
+		</if>
+		
+) b 
+					where rownum &lt;= #{end}
+					)
+					where rnum&gt;= #{start} and rnum&lt;= #{end}
+	</select>
+	
+	<sql id="search_">
+		<if test='search_field !=null'>
+				and 
+				<choose>
+					<when test="search_field=='userid'">userid</when>
+					<when test="search_field=='area_name'">area_name</when>
+					<when test="search_field=='gender'">gender</when>
+				</choose> 
+				like #{search_word}
+		</if> 
+	</sql>
+</mapper>
