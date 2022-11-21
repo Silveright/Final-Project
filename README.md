@@ -40,6 +40,6 @@ Spring boot + JSP
 ![admin](https://user-images.githubusercontent.com/100340071/203098996-3bb3d285-91bf-4053-aa9c-245cf9b27a2d.gif)
 ![adminmember](https://user-images.githubusercontent.com/100340071/203101682-1ccf7906-6b06-4c78-bae4-44fddca5fff6.gif)
 
-![notice](https://user-images.githubusercontent.com/100340071/203099112-b996a037-8bb8-4c68-ae1b-617a52b64da1.gif)
+![notice](https://user-images.githubusercontent.com/100340071/203102741-9d9c67b9-3bf5-4d7c-adb4-9f4c1bf43440.gif)
 ![inquiry](https://user-images.githubusercontent.com/100340071/203099185-5b1dad08-c4b0-4c72-92a4-5b853d3192d1.gif)
 
