@@ -14,10 +14,15 @@
 
 # 🧰개발 환경
 
-* OS `Windows 10`
-* Development Tool `Eclipse`
-* FrameWork `Spring boot 2.6.12` `Mybatis`
-* `java 11` `Tomcat 9.0` `Oracle DB(11xe)`
+* OS - `Windows 10`
+* IDE - `Eclipse`
+* FrameWork - `Spring boot 2.6.12` `Mybatis`
+* DB - `Oracle DB(11xe)`
+* WAS - `Tomcat 9.0`
+* Language - `Java 11`
+* Front - `Html/CSS` `JavaScript` `JQuery` `Bootstrap5`
+* Open Source - `Kakao Map API` `Fullcalendar`
+
 
 # ⚙️ERD 설계!
 
