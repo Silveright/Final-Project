@@ -1,5 +1,5 @@
 # Final-Project : 모임커뮤니티 3355
-
+Spring boot + JSP
 
 # ⏰개발기간
 
@@ -30,8 +30,15 @@
 
 
 # FinalProject-3355
-Spring boot + JSP
+![main](https://user-images.githubusercontent.com/100340071/203098756-339d8903-7dcd-4839-a4b2-f0088c5e4f24.gif)
 
 # ✔️구현 기능
+![calinsert](https://user-images.githubusercontent.com/100340071/203098891-a66fc274-f1bc-47e8-9d9a-9a87687b15b9.gif)
+![kakaomap](https://user-images.githubusercontent.com/100340071/203098948-24784b74-d8f2-4543-abb9-ed026f549829.gif)
+![calupdatedel](https://user-images.githubusercontent.com/100340071/203098924-2ba5ed9e-c8da-4d7d-9798-8931b35e1e7c.gif)
 
+![admin](https://user-images.githubusercontent.com/100340071/203098996-3bb3d285-91bf-4053-aa9c-245cf9b27a2d.gif)
+
+![notice](https://user-images.githubusercontent.com/100340071/203099112-b996a037-8bb8-4c68-ae1b-617a52b64da1.gif)
+![inquiry](https://user-images.githubusercontent.com/100340071/203099185-5b1dad08-c4b0-4c72-92a4-5b853d3192d1.gif)
 
