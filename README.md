@@ -30,7 +30,7 @@ Spring boot + JSP
 
 
 # FinalProject-3355
-![main](https://user-images.githubusercontent.com/100340071/203098756-339d8903-7dcd-4839-a4b2-f0088c5e4f24.gif)
+![main](https://user-images.githubusercontent.com/100340071/203100250-6f5c1f62-abc0-4c16-be02-ed2329636005.gif)
 
 # ✔️구현 기능
 ![calinsert](https://user-images.githubusercontent.com/100340071/203098891-a66fc274-f1bc-47e8-9d9a-9a87687b15b9.gif)
