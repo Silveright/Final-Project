@@ -29,9 +29,8 @@
 ![Untitled](https://user-images.githubusercontent.com/100340071/203090702-3183e5bb-9f63-4fdb-aaf8-d0148a42527f.png)
 
 
-# SemiProject-한눈에쇼핑
-
-servlet+jsp 쇼핑몰 사이트
+# FinalProject-3355
+Spring boot + JSP
 
 # ✔️구현 기능
 
