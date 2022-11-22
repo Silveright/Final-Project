@@ -11,6 +11,8 @@ Spring boot + JSP
 * Fullcalendar Library를 활용한 모임 일정관리
 * Kakao Map API를 활용한 지도 기능
 * Chart.js를 활용한 관리자 통계기능
+* 추가작업 - 공지사항 , 문의사항 게시판
+
 
 # 🧰개발 환경
 
